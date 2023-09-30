@@ -58,7 +58,10 @@ int OnCalculate(const int rates_total,
                 const double &open[],
                 const double &high[],
                 const double &low[],
-                const double &close[])
+                const double &close[],
+                const long &tick_volume[],
+                const long &volume[],
+                const int &spread[])
   {
    // Initialize variables for new calculation
    Lots_Buy=0;
