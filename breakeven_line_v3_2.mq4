@@ -6,10 +6,10 @@
 #property copyright "Copyright 2023, M.Geller"
 #property strict
 #property indicator_chart_window
-//---
+// External parameter definitions: font color and font size
 extern color font_color=White;
 int font_size=14;
-//---
+// Declare variables related to market info and symbol adjustments
 int PipAdjust,NrOfDigits;
 double point;
 //+------------------------------------------------------------------+
@@ -17,26 +17,28 @@ double point;
 //+------------------------------------------------------------------+
 int OnInit()
   {
+   // Delete potential previous objects from the chart to ensure a clean slate
    ObjectDelete("Average_Price_Line_"+Symbol());
    ObjectDelete("Information_"+Symbol());
    ObjectDelete("Information_2"+Symbol());
    ObjectDelete("Information_3"+Symbol());
-//---
+   // Initialize the number of digits for the current symbol
    NrOfDigits=Digits;
-//---
+   // Adjust the pip value depending on the number of digits
    if(NrOfDigits==5 || NrOfDigits==3)
       PipAdjust=10;
    else
       if(NrOfDigits==4 || NrOfDigits==2)
          PipAdjust=1;
-//---
+   // Calculate the value of one point (smallest price change)
    point=Point*PipAdjust;
 //---
 //Alert(INIT_FAILED);
+   // Return that the initialization was successful
    return(INIT_SUCCEEDED);
   }
 //+------------------------------------------------------------------+
-//|                                                                  |
+//|function is called when the indicator is de-initialized or removed|
 //+------------------------------------------------------------------+
 void OnDeinit(const int reason)
   {
@@ -46,7 +48,8 @@ void OnDeinit(const int reason)
    ObjectDelete("Information_3"+Symbol());
   }
 //+------------------------------------------------------------------+
-//| Custom indicator iteration function                              |
+//| Custom indicator calculation function that's executed on every   |
+//| tick or price change                                             |
 //+------------------------------------------------------------------+
 int OnCalculate(const int rates_total,
                 const int prev_calculated,
@@ -60,6 +63,7 @@ int OnCalculate(const int rates_total,
                 const int &spread[])
   {
 //Alert("in OnCalculate...Symbol="+Symbol());
+   // Declare and initialize trade-related variables
    int Total_Buy_Trades=0;
    double Total_Buy_Size=0;
    double Total_Buy_Price=0;
@@ -89,31 +93,37 @@ int OnCalculate(const int rates_total,
 //static int total;
 //int prevTotal = total;
 //total = OrdersTotal();
+   // Check total number of open orders
    int total = OrdersTotal();
 
 //Alert("total= "+total);
 //Alert("in OnCalculate...Symbol="+Symbol());
-//---
+   // If there are open orders
    if(total>0)
      {
       for(int i=0; i<total; i++)
         {
          int ord=OrderSelect(i,SELECT_BY_POS,MODE_TRADES);
            {
+            // Check if it's a buy order for the current symbol
             if(OrderType()==OP_BUY && OrderSymbol()==Symbol())
               {
+               // Aggregate buy-related data
                Total_Buy_Trades++;
                Total_Buy_Price+= OrderOpenPrice()*OrderLots();
                Total_Buy_Size += OrderLots();
                Buy_Profit+=OrderProfit()+OrderSwap()+OrderCommission();
               }
+            // Check if it's a sell order for the current symbol
             if(OrderType()==OP_SELL && OrderSymbol()==Symbol())
               {
+               // Aggregate sell-related data
                Total_Sell_Trades++;
                Total_Sell_Size+=OrderLots();
                Total_Sell_Price+=OrderOpenPrice()*OrderLots();
                Sell_Profit+=OrderProfit()+OrderSwap()+OrderCommission();
               }
+            // Check for the take profit of the order if it's still open
             if(OrderSymbol()==Symbol())
               {
                datetime ctm=OrderCloseTime();
@@ -126,7 +136,7 @@ int OnCalculate(const int rates_total,
            }
         }
      }
-
+   // Calculate the average price for buy and sell orders
    if(Total_Buy_Price>0)
      {
       Total_Buy_Price/=Total_Buy_Size;
@@ -144,7 +154,7 @@ int OnCalculate(const int rates_total,
    ObjectDelete("Information_"+Symbol());
    ObjectDelete("Information_2"+Symbol());
    ObjectDelete("Information_3"+Symbol());
-//---
+   // If there are trades and the net lot is not zero
    if(Net_Trades>0 && Net_Lots!=0)
      {
       distance=(Net_Result/(MathAbs(Net_Lots*MarketInfo(Symbol(),MODE_TICKVALUE)))*MarketInfo(Symbol(),MODE_TICKSIZE));  // in ticks (or points) or pips?
@@ -167,6 +177,7 @@ int OnCalculate(const int rates_total,
       Average_Price=Bid-distance;
       pipsOfProfit = MathAbs(tpPrice-Average_Price)/point;  // distance, in pips, from breakeven price to TP price
      }
+   // If the average price is calculated
    if(Average_Price>0)
      {
       pipsToBE = distance/point;           // distance, in pips, from current price to breakeven price
