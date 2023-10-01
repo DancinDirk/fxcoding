@@ -26,16 +26,17 @@ enum CornerEnum
    CORNER_BOTTOM_RIGHT
 };
 
-input CornerEnum Corner = CORNER_TOP_LEFT;
+input CornerEnum Corner = CORNER_BOTTOM_RIGHT;
+input int fontSize = 8; // Font Size
 
-input int xBreakEven = 300; // BreakEven X
+input int xBreakEven = 5; // BreakEven X
 input int yBreakEven = 0;  // BreakEven Y
 
-input int xTakeProfit = 300; // TakeProfit X
-input int yTakeProfit = 25; // TakeProfit Y
+input int xTakeProfit = 5; // TakeProfit X
+input int yTakeProfit = 12; // TakeProfit Y
 
-input int xOpenLots = 300; // OpenLots X
-input int yOpenLots = 50; // OpenLots Y
+input int xOpenLots = 5; // OpenLots X
+input int yOpenLots = 24; // OpenLots Y
 //+------------------------------------------------------------------+
 //| Custom indicator initialization function                         |
 //+------------------------------------------------------------------+
@@ -232,7 +233,7 @@ void createLabel(string objectName, int xDistance, int yDistance, string text) {
    ObjectSet(objectName, OBJPROP_CORNER, Corner);
    ObjectSet(objectName, OBJPROP_XDISTANCE, xDistance);
    ObjectSet(objectName, OBJPROP_YDISTANCE, yDistance);
-   ObjectSetText(objectName, text, 16, "Arial", White);
+   ObjectSetText(objectName, text, fontSize, "Arial", White);
 }
 
 //+------------------------------------------------------------------+
