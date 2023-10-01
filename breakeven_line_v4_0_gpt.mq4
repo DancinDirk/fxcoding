@@ -9,7 +9,7 @@
 #property copyright "2023 Please Development LLC"
 #property link      "http://www.pleasedevelopment.com/"
 #property version   "4.00"
-#property indicator_separate_window
+// #property indicator_separate_window
 #property indicator_buffers 1
 #property indicator_color1 Blue
 #property strict
@@ -38,6 +38,7 @@ int OnInit()
    // Initialize variables
    Local_Point = MarketInfo(Symbol(),MODE_POINT);
    PipAdjust = MathPow(10,MarketInfo(Symbol(),MODE_DIGITS));
+   ObjectDelete("Average_Price_Line_"+Symbol());
    return(INIT_SUCCEEDED);
   }
 //+------------------------------------------------------------------+
@@ -66,29 +67,41 @@ int OnCalculate(const int rates_total,
    // Initialize variables for new calculation
    Lots_Buy=0;
    Lots_Sell=0;
+   int Total_Buy_Trades=0;
+   int Total_Sell_Trades=0;
    double sum_price_buy=0, sum_price_sell=0;
    // Loop through orders
+  Print("Total Orders: ", OrdersTotal());
+  int total = OrdersTotal();
+  if(total > 0)
+  {
    for(int i=0; i<OrdersTotal(); i++)
      {
       if(OrderSelect(i,SELECT_BY_POS,MODE_TRADES))
         {
          if(OrderSymbol() != Symbol()) continue;
-         if(OrderType() == OP_BUY)
+        if(OrderType() == OP_BUY && OrderSymbol() == Symbol())
            {
             Lots_Buy += OrderLots();
             sum_price_buy += OrderLots() * OrderOpenPrice();
+          Total_Buy_Trades++;
            }
-         else if(OrderType() == OP_SELL)
+         else if(OrderType() == OP_SELL && OrderSymbol() == Symbol())
            {
             Lots_Sell += OrderLots();
             sum_price_sell += OrderLots() * OrderOpenPrice();
+          Total_Sell_Trades++;
            }
         }
      }
+  }
    // Calculate average price
    Average_Price = (Lots_Buy != 0) ? sum_price_buy / Lots_Buy : (Lots_Sell != 0) ? sum_price_sell / Lots_Sell : 0;
    // Determine trading direction
    Trading_Direction = (Lots_Buy >= Lots_Sell) ? "Buy" : "Sell";
+  Print("Lots_Buy: ", Lots_Buy);
+  Print("Lots_Sell: ", Lots_Sell);
+  Print("Average_Price: ", Average_Price);
    // Display labels
    CreateLabel("Trading_Direction_"+Symbol(), "Trading Direction: "+Trading_Direction, 0, 300, 50, font_color);
    CreateLabel("Lots_Sell_"+Symbol(),"Sell Lots: "+DoubleToStr(Lots_Sell,2), 0, 300, 80, Red);
@@ -102,6 +115,7 @@ int OnCalculate(const int rates_total,
 //+------------------------------------------------------------------+
 void CreateLabel(string name, string text, int corner, int x_dist, int y_dist, color clr)
   {
+  Print("Creating Label: ", name);
    ObjectCreate(name, text, OBJ_LABEL, 0, 0);
    ObjectSetInteger(0,name,OBJPROP_CORNER,corner);
    ObjectSetInteger(0,name,OBJPROP_XDISTANCE,x_dist);
