@@ -9,7 +9,7 @@
 #property copyright "2023 Please Development LLC"
 #property link      "http://www.pleasedevelopment.com/"
 #property version   "4.00"
-// #property indicator_separate_window
+#property indicator_chart_window
 #property indicator_buffers 1
 #property indicator_color1 Blue
 #property strict

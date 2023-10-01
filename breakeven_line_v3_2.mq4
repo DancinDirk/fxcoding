@@ -1,9 +1,14 @@
 //+------------------------------------------------------------------+
-//|                                            breakeven_line_v3.mq4 |
-//|                                        Copyright 2023, M. Geller |
-//|                                           newlegs@protonmail.com |
+//|  Original Copyright:                            TradeState.mq4   |
+//|                      Copyright 2020, MetaQuotes Software Corp.   |
+//|                                           https://www.mql5.com   |
+//|  Revision:                                   BreakEvenLine.mq4   |
+//|                         Copyright 2023, Please Development LLC   |
+//|                              https://www.pleasedevelopment.com   |
 //+------------------------------------------------------------------+
-#property copyright "Copyright 2023, M.Geller"
+#property copyright "2023 Please Development LLC"
+#property link      "http://www.pleasedevelopment.com/"
+#property version   "4.00"
 #property strict
 #property indicator_chart_window
 // External parameter definitions: font color and font size
@@ -18,10 +23,7 @@ double point;
 int OnInit()
   {
    // Delete potential previous objects from the chart to ensure a clean slate
-   ObjectDelete("Average_Price_Line_"+Symbol());
-   ObjectDelete("Information_"+Symbol());
-   ObjectDelete("Information_2"+Symbol());
-   ObjectDelete("Information_3"+Symbol());
+   deleteObjects();
    // Initialize the number of digits for the current symbol
    NrOfDigits=Digits;
    // Adjust the pip value depending on the number of digits
@@ -42,10 +44,8 @@ int OnInit()
 //+------------------------------------------------------------------+
 void OnDeinit(const int reason)
   {
-   ObjectDelete("Average_Price_Line_"+Symbol());
-   ObjectDelete("Information_"+Symbol());
-   ObjectDelete("Information_2"+Symbol());
-   ObjectDelete("Information_3"+Symbol());
+   //--- delete any object. 
+   deleteObjects();
   }
 //+------------------------------------------------------------------+
 //| Custom indicator calculation function that's executed on every   |
@@ -149,11 +149,8 @@ int OnCalculate(const int rates_total,
 //prevNet_Lots = Net_Lots;
    Net_Lots=Total_Buy_Size-Total_Sell_Size;
    Net_Result=Buy_Profit+Sell_Profit;       // aka current drawdown in dollars
-//---
-   ObjectDelete("Average_Price_Line_"+Symbol());
-   ObjectDelete("Information_"+Symbol());
-   ObjectDelete("Information_2"+Symbol());
-   ObjectDelete("Information_3"+Symbol());
+   //--- delete any object. 
+   deleteObjects();
    // If there are trades and the net lot is not zero
    if(Net_Trades>0 && Net_Lots!=0)
      {
@@ -196,30 +193,25 @@ int OnCalculate(const int rates_total,
 //if(Net_Lots<0) cl=Red;
    if(Net_Lots==0)
       cl=White;
-//---
-   ObjectSet("Average_Price_Line_"+Symbol(),OBJPROP_COLOR,cl);
-   ObjectCreate("Information_"+Symbol(),OBJ_LABEL,0,0,0);
-   ObjectCreate("Information_2"+Symbol(),OBJ_LABEL,0,0,0);
-   ObjectCreate("Information_3"+Symbol(),OBJ_LABEL,0,0,0);
-//---
-   int x,y;
-   ChartTimePriceToXY(0,0,Time[0],Average_Price,x,y);
-//---
-   ObjectSet("Information_"+Symbol(),OBJPROP_XDISTANCE,300);
-   ObjectSet("Information_"+Symbol(),OBJPROP_YDISTANCE,0);
-   ObjectSetText("Information_"+Symbol(),"BreakEven = "+DoubleToStr(Average_Price,NrOfDigits)+", "+DoubleToStr(distance/(point),1)+" pips ("+DoubleToStr(Net_Result,2)+" "+AccountInfoString(ACCOUNT_CURRENCY)+") ",10,"Arial",White);
-//---
-   ObjectSet("Information_2"+Symbol(),OBJPROP_XDISTANCE,685);
-   ObjectSet("Information_2"+Symbol(),OBJPROP_YDISTANCE,0);
-   ObjectSetText("Information_2"+Symbol(),"TakeProfit = "+DoubleToStr(tpPrice,NrOfDigits)+", "+DoubleToStr(pipsToTP,1)+" pips",10,"Arial",White);
-//---
-   ObjectSet("Information_3"+Symbol(),OBJPROP_XDISTANCE,980);
-   ObjectSet("Information_3"+Symbol(),OBJPROP_YDISTANCE,0);
-   ObjectSetText("Information_3"+Symbol(),"OpenLots = "+DoubleToStr(Net_Lots,2)+", ExpectedProfit = "+DoubleToStr(profitAtClose,2)+" "+AccountInfoString(ACCOUNT_CURRENCY),10,"Arial",White);
-//---
-//Alert("in OnCalculate...Symbol="+Symbol());
+void createLabel(string objectName, int xDistance, int yDistance, string text) {
+   ObjectCreate(objectName, OBJ_LABEL, 0, 0, 0);
+   ObjectSet(objectName, OBJPROP_XDISTANCE, xDistance);
+   ObjectSet(objectName, OBJPROP_YDISTANCE, yDistance);
+   ObjectSetText(objectName, text, 10, "Arial", White);
+}
+
+// Call the function for each label
+ObjectSet("Average_Price_Line_"+Symbol(), OBJPROP_COLOR, cl);
+createLabel("Information_"+Symbol(), 300, 0, "BreakEven = "+DoubleToStr(Average_Price,NrOfDigits)+", "+DoubleToStr(distance/(point),1)+" pips ("+DoubleToStr(Net_Result,2)+" "+AccountInfoString(ACCOUNT_CURRENCY)+") ");
+createLabel("Information_2"+Symbol(), 685, 0, "TakeProfit = "+DoubleToStr(tpPrice,NrOfDigits)+", "+DoubleToStr(pipsToTP,1)+" pips");
+createLabel("Information_3"+Symbol(), 980, 0, "OpenLots = "+DoubleToStr(Net_Lots,2)+", ExpectedProfit = "+DoubleToStr(profitAtClose,2)+" "+AccountInfoString(ACCOUNT_CURRENCY));//Alert("in OnCalculate...Symbol="+Symbol());
    return(0);
   }
 //+------------------------------------------------------------------+
-
+void deleteObjects(){
+   ObjectDelete("Average_Price_Line_"+Symbol());
+   ObjectDelete("Information_"+Symbol());
+   ObjectDelete("Information_2"+Symbol());
+   ObjectDelete("Information_3"+Symbol());
+}
 //+------------------------------------------------------------------+
