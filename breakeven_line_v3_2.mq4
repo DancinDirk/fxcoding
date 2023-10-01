@@ -17,6 +17,25 @@ int font_size=14;
 // Declare variables related to market info and symbol adjustments
 int PipAdjust,NrOfDigits;
 double point;
+
+enum CornerEnum
+{
+   CORNER_TOP_LEFT,
+   CORNER_TOP_RIGHT,
+   CORNER_BOTTOM_LEFT,
+   CORNER_BOTTOM_RIGHT
+};
+
+input CornerEnum Corner = CORNER_TOP_LEFT;
+
+input int xBreakEven = 300; // BreakEven X
+input int yBreakEven = 0;  // BreakEven Y
+
+input int xTakeProfit = 300; // TakeProfit X
+input int yTakeProfit = 25; // TakeProfit Y
+
+input int xOpenLots = 300; // OpenLots X
+input int yOpenLots = 50; // OpenLots Y
 //+------------------------------------------------------------------+
 //| Custom indicator initialization function                         |
 //+------------------------------------------------------------------+
@@ -193,18 +212,12 @@ int OnCalculate(const int rates_total,
 //if(Net_Lots<0) cl=Red;
    if(Net_Lots==0)
       cl=White;
-void createLabel(string objectName, int xDistance, int yDistance, string text) {
-   ObjectCreate(objectName, OBJ_LABEL, 0, 0, 0);
-   ObjectSet(objectName, OBJPROP_XDISTANCE, xDistance);
-   ObjectSet(objectName, OBJPROP_YDISTANCE, yDistance);
-   ObjectSetText(objectName, text, 10, "Arial", White);
-}
 
 // Call the function for each label
 ObjectSet("Average_Price_Line_"+Symbol(), OBJPROP_COLOR, cl);
-createLabel("Information_"+Symbol(), 300, 0, "BreakEven = "+DoubleToStr(Average_Price,NrOfDigits)+", "+DoubleToStr(distance/(point),1)+" pips ("+DoubleToStr(Net_Result,2)+" "+AccountInfoString(ACCOUNT_CURRENCY)+") ");
-createLabel("Information_2"+Symbol(), 685, 0, "TakeProfit = "+DoubleToStr(tpPrice,NrOfDigits)+", "+DoubleToStr(pipsToTP,1)+" pips");
-createLabel("Information_3"+Symbol(), 980, 0, "OpenLots = "+DoubleToStr(Net_Lots,2)+", ExpectedProfit = "+DoubleToStr(profitAtClose,2)+" "+AccountInfoString(ACCOUNT_CURRENCY));//Alert("in OnCalculate...Symbol="+Symbol());
+   createLabel("Information_"+Symbol(), xBreakEven, yBreakEven, "BreakEven = "+DoubleToStr(Average_Price,NrOfDigits)+", "+DoubleToStr(distance/(point),1)+" pips ("+DoubleToStr(Net_Result,2)+" "+AccountInfoString(ACCOUNT_CURRENCY)+") ");
+   createLabel("Information_2"+Symbol(), xTakeProfit, yTakeProfit, "TakeProfit = "+DoubleToStr(tpPrice,NrOfDigits)+", "+DoubleToStr(pipsToTP,1)+" pips");
+   createLabel("Information_3"+Symbol(), xOpenLots, yOpenLots, "OpenLots = "+DoubleToStr(Net_Lots,2)+", ExpectedProfit = "+DoubleToStr(profitAtClose,2)+" "+AccountInfoString(ACCOUNT_CURRENCY));
    return(0);
   }
 //+------------------------------------------------------------------+
@@ -214,4 +227,12 @@ void deleteObjects(){
    ObjectDelete("Information_2"+Symbol());
    ObjectDelete("Information_3"+Symbol());
 }
+void createLabel(string objectName, int xDistance, int yDistance, string text) {
+   ObjectCreate(objectName, OBJ_LABEL, 0, 0, 0);
+   ObjectSet(objectName, OBJPROP_CORNER, Corner);
+   ObjectSet(objectName, OBJPROP_XDISTANCE, xDistance);
+   ObjectSet(objectName, OBJPROP_YDISTANCE, yDistance);
+   ObjectSetText(objectName, text, 16, "Arial", White);
+}
+
 //+------------------------------------------------------------------+
