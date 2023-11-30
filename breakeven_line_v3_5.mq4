@@ -13,7 +13,7 @@
 #property indicator_chart_window
 //---
 extern color font_color = White;
-int font_size = 14;
+
 //---
 int PipAdjust, NrOfDigits;
 double point;
@@ -30,16 +30,16 @@ enum CornerEnum
 };
 
 input CornerEnum Corner = CORNER_BOTTOM_RIGHT;
-input int fontSize = 8; // Font Size
+input int fontSize = 10; // Font Size
 
 input int xBreakEven = 5; // BreakEven X
 input int yBreakEven = 0; // BreakEven Y
 
 input int xTakeProfit = 5;  // TakeProfit X
-input int yTakeProfit = 12; // TakeProfit Y
+input int yTakeProfit = 13; // TakeProfit Y
 
 input int xOpenLots = 5;  // OpenLots X
-input int yOpenLots = 24; // OpenLots Y
+input int yOpenLots = 26; // OpenLots Y
 
 //+------------------------------------------------------------------+
 //| Custom indicator initialization function                         |
@@ -224,11 +224,13 @@ int OnCalculate(const int rates_total,
    }
    profitAtClose = pipsOfProfit * ppMultiplier;
 
+   double totalLotsAccount = calculateTotalLotsAccount();
+
    ObjectDelete("Average_Price_Line_" + Symbol());
    ObjectCreate("Average_Price_Line_" + Symbol(), OBJ_HLINE, 0, 0, Average_Price);
    ObjectSet("Average_Price_Line_" + Symbol(), OBJPROP_WIDTH, 1);
 
-   //---
+  //---
    color cl = Blue;
    // if(Net_Lots<0) cl=Red;
    if (Net_Lots == 0)
@@ -236,11 +238,25 @@ int OnCalculate(const int rates_total,
    // Call the function for each label
    ObjectSet("Average_Price_Line_" + Symbol(), OBJPROP_COLOR, cl);
    createLabel("Information_" + Symbol(), xBreakEven, yBreakEven, "BreakEven = " + DoubleToStr(Average_Price, NrOfDigits) + ", " + DoubleToStr(distance / (point), 1) + " pips (" + DoubleToStr(Net_Result, 2) + " " + AccountInfoString(ACCOUNT_CURRENCY) + ")");
-   createLabel("Information_2" + Symbol(), xTakeProfit, yTakeProfit, "TakeProfit = " + DoubleToStr(tpPrice, NrOfDigits) + ", " + DoubleToStr(pipsToTP, 1) + " pips");
-   createLabel("Information_3" + Symbol(), xOpenLots, yOpenLots, "OpenLots = " + DoubleToStr(Net_Lots, 2) + ", ExpectedProfit = " + DoubleToStr(profitAtClose, 2) + " " + AccountInfoString(ACCOUNT_CURRENCY));
+   createLabel("Information_2" + Symbol(), xTakeProfit, yTakeProfit, "Total Lots = " + DoubleToStr(totalLotsAccount, 2) + " TP = " + DoubleToStr(tpPrice, NrOfDigits) + ", " + DoubleToStr(pipsToTP, 1) + " pips");
+   createLabel("Information_3" + Symbol(), xOpenLots, yOpenLots, "Lots = " + DoubleToStr(Net_Lots, 2) + ", EstProfit = " + DoubleToStr(profitAtClose, 2) + " " + AccountInfoString(ACCOUNT_CURRENCY));
+   
    return (0);
 }
 //+------------------------------------------------------------------+
+
+// Function to calculate total lots for the account
+double calculateTotalLotsAccount() {
+   double totalLots = 0;
+   int totalOrders = OrdersTotal();
+   for (int i = 0; i < totalOrders; i++) {
+      if (OrderSelect(i, SELECT_BY_POS, MODE_TRADES)) {
+         totalLots += OrderLots();
+      }
+   }
+   return totalLots;
+}
+
 void deleteObjects()
 {
    ObjectDelete("Average_Price_Line_" + Symbol());
@@ -248,13 +264,27 @@ void deleteObjects()
    ObjectDelete("Information_2" + Symbol());
    ObjectDelete("Information_3" + Symbol());
 }
-void createLabel(string objectName, int xDistance, int yDistance, string text)
-{
-   ObjectCreate(objectName, OBJ_LABEL, 0, 0, 0);
-   ObjectSet(objectName, OBJPROP_CORNER, Corner);
-   ObjectSet(objectName, OBJPROP_XDISTANCE, xDistance);
-   ObjectSet(objectName, OBJPROP_YDISTANCE, yDistance);
-   ObjectSetText(objectName, text, fontSize, "Arial", White);
+void createLabel(string objectName, int xDistance, int yDistance, string text) {
+
+    // Create outline labels
+    for (int dx = -2; dx <= 2; dx++) {
+        for (int dy = -2; dy <= 2; dy++) {
+            if (dx == 0 && dy == 0) continue; // Skip the main label position
+            string outlineName = objectName + "_Outline_" + IntegerToString(dx) + "_" + IntegerToString(dy);
+            ObjectCreate(outlineName, OBJ_LABEL, 0, 0, 0);
+            ObjectSet(outlineName, OBJPROP_CORNER, Corner);
+            ObjectSet(outlineName, OBJPROP_XDISTANCE, xDistance + dx);
+            ObjectSet(outlineName, OBJPROP_YDISTANCE, yDistance + dy);
+            ObjectSetText(outlineName, text, fontSize, "Arial", Black);
+        }
+    }
+    // Create main label
+    ObjectCreate(objectName, OBJ_LABEL, 0, 0, 0);
+    ObjectSet(objectName, OBJPROP_CORNER, Corner);
+    ObjectSet(objectName, OBJPROP_XDISTANCE, xDistance);
+    ObjectSet(objectName, OBJPROP_YDISTANCE, yDistance);
+    ObjectSetText(objectName, text, fontSize, "Arial", White);
 }
+
 
 //+------------------------------------------------------------------+
