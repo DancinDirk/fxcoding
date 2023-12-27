@@ -260,9 +260,24 @@ double calculateTotalLotsAccount() {
 void deleteObjects()
 {
    ObjectDelete("Average_Price_Line_" + Symbol());
-   ObjectDelete("Information_" + Symbol());
-   ObjectDelete("Information_2" + Symbol());
-   ObjectDelete("Information_3" + Symbol());
+   // ObjectDelete("Information_" + Symbol());
+   // ObjectDelete("Information_2" + Symbol());
+   // ObjectDelete("Information_3" + Symbol());
+   deleteShadows("Information_" + Symbol());
+   deleteShadows("Information_2" + Symbol());
+   deleteShadows("Information_3" + Symbol());
+}
+
+void deleteShadows(string objectName)
+{
+    ObjectDelete(objectName);
+    for (int dx = -2; dx <= 2; dx++) {
+        for (int dy = -2; dy <= 2; dy++) {
+            if (dx == 0 && dy == 0) continue; // Skip the main label position
+            string outlineName = objectName + "_Outline_" + IntegerToString(dx) + "_" + IntegerToString(dy);
+            ObjectDelete(outlineName);
+        }
+    }   
 }
 void createLabel(string objectName, int xDistance, int yDistance, string text) {
 
